@@ -1,0 +1,18 @@
+{
+  "extends": "@antfu",
+  "rules": {
+    "curly": [ //强制if等语句添加大括号
+      "error",
+      "all"
+    ],
+    "brace-style": [ //强制大括号不换行
+      "error",
+      "1tbs"
+    ],
+    "no-console": "off", // 允许使用console
+    "@typescript-eslint/brace-style": ["error", "1tbs"]
+  },
+  "env": {
+    "vue/setup-compiler-macros": true
+  }
+}

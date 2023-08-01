@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const msg = 'Electron + Vue3 template';
+const msg = 'Electron + Vue3 template'
 </script>
 
 <template>
