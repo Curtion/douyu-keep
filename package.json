@@ -26,11 +26,15 @@
     "electron-builder": "^24.6.3",
     "eslint": "^8.46.0",
     "eslint-plugin-vue": "^9.16.1",
+    "sass": "^1.64.2",
     "taze": "^0.11.2",
     "typescript": "^5.1.6",
+    "unocss": "^0.54.1",
     "vite": "^4.4.7"
   },
   "dependencies": {
-    "vue": "^3.3.4"
+    "pinia": "^2.1.6",
+    "vue": "^3.3.4",
+    "vue-router": "4"
   }
 }

@@ -1,11 +1,8 @@
-const Path = require('node:path')
-const vuePlugin = require('@vitejs/plugin-vue')
+import Path from 'node:path'
+import UnoCSS from 'unocss/vite'
+import vuePlugin from '@vitejs/plugin-vue'
+import { defineConfig } from 'vite'
 
-const { defineConfig } = require('vite')
-
-/**
- * https://vitejs.dev/config
- */
 const config = defineConfig({
   root: Path.join(__dirname, 'src', 'renderer'),
   publicDir: 'public',
@@ -17,7 +14,16 @@ const config = defineConfig({
     outDir: Path.join(__dirname, 'build', 'renderer'),
     emptyOutDir: true,
   },
-  plugins: [vuePlugin()],
+  plugins: [
+    vuePlugin(),
+    UnoCSS(),
+  ],
+  resolve: {
+    alias: {
+      '~': Path.resolve(__dirname, './src/renderer'),
+    },
+    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue'],
+  },
 })
 
-module.exports = config
+export default config

@@ -8,7 +8,6 @@ function createWindow() {
     height: 500,
     webPreferences: {
       preload: join(__dirname, 'preload.js'),
-      nodeIntegration: false,
       contextIsolation: true,
     },
   })
@@ -16,9 +15,30 @@ function createWindow() {
   if (process.env.NODE_ENV === 'development') {
     const rendererPort = process.argv[2]
     mainWindow.loadURL(`http://localhost:${rendererPort}`)
+    mainWindow.webContents.openDevTools({ mode: 'detach' })
   } else {
     mainWindow.loadFile(join(app.getAppPath(), 'renderer', 'index.html'))
   }
+  mainWindow.webContents.session.webRequest.onBeforeSendHeaders(
+    (details, callback) => {
+      callback({
+        requestHeaders: {
+          Origin: '*',
+          Referer: 'https://www.douyu.com/',
+          ...details.requestHeaders,
+        },
+      })
+    },
+  )
+
+  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        'Access-Control-Allow-Origin': ['*'],
+        ...details.responseHeaders,
+      },
+    })
+  })
 }
 
 app.whenReady().then(() => {
@@ -34,8 +54,6 @@ app.whenReady().then(() => {
   })
 
   app.on('activate', () => {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow()
     }
@@ -48,6 +66,28 @@ app.on('window-all-closed', () => {
   }
 })
 
-ipcMain.on('message', (event, message) => {
-  console.log(message)
+ipcMain.handle('login', (_event, _message) => {
+  return new Promise<void>((resolve) => {
+    const win = new BrowserWindow({
+      width: 1200,
+      height: 800,
+      webPreferences: {
+        webSecurity: false,
+      },
+      resizable: false,
+    })
+    win.loadURL('https://www.douyu.com/directory')
+    win.webContents.openDevTools({ mode: 'detach' })
+    win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+      callback({
+        responseHeaders: {
+          'Content-Security-Policy': ['script-src \'unsafe-inline\' \'script-src-elem\' \'self\' https://www.douyu.com'],
+          ...details.responseHeaders,
+        },
+      })
+    })
+    win.on('closed', () => {
+      resolve()
+    })
+  })
 })
