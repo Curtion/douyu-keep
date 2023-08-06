@@ -1,30 +1,23 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { useLogin } from '~/stores'
 
-// https://www.douyu.com/member/cp/cp_rpc_ajax
-const { name, reload } = useLogin()
+const { getUser } = useLogin()
+const router = useRouter()
 
-function reload1() {
-  window.location.reload()
-}
-
-function login() {
-  window.electron.ipcRenderer.invoke('login').then(() => {
-    console.log('登录成功')
-    reload()
-  })
+async function login() {
+  await window.electron.ipcRenderer.invoke('login')
+  await getUser()
+  router.push('/')
 }
 </script>
 
 <template>
-  <div>
-    {{ name }}
-    123456
+  <div
+    class="flex items-center justify-center w-full h-full text-xl "
+  >
+    <button class="text-black hover:underline" @click="login">
+      登录斗鱼账号
+    </button>
   </div>
-  <button @click="reload1">
-    reload
-  </button>
-  <button @click="login">
-    login
-  </button>
 </template>

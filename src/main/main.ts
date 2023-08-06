@@ -10,6 +10,8 @@ function createWindow() {
       preload: join(__dirname, 'preload.js'),
       contextIsolation: true,
     },
+    resizable: false,
+    icon: join(__dirname, '../', '../', 'icon.png'),
   })
 
   if (process.env.NODE_ENV === 'development') {
@@ -19,23 +21,36 @@ function createWindow() {
   } else {
     mainWindow.loadFile(join(app.getAppPath(), 'renderer', 'index.html'))
   }
-  mainWindow.webContents.session.webRequest.onBeforeSendHeaders(
-    (details, callback) => {
-      callback({
-        requestHeaders: {
-          Origin: '*',
-          Referer: 'https://www.douyu.com/',
-          ...details.requestHeaders,
-        },
+  // mainWindow.setMenuBarVisibility(false)
+  mainWindow.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
+    session.defaultSession.cookies.get({ url: 'https://www.douyu.com' })
+      .then((cookies) => {
+        const cookiesStr = cookies.map(cookie => `${cookie.name}=${cookie.value}`).join(';')
+        callback({
+          requestHeaders: {
+            ...details.requestHeaders,
+            Origin: '*',
+            Referer: 'https://www.douyu.com/',
+            Cookie: cookiesStr,
+          },
+        })
+      }).catch((error) => {
+        console.log(error)
+        callback({
+          requestHeaders: {
+            ...details.requestHeaders,
+            Origin: '*',
+            Referer: 'https://www.douyu.com/',
+          },
+        })
       })
-    },
+  },
   )
-
   mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
     callback({
       responseHeaders: {
-        'Access-Control-Allow-Origin': ['*'],
         ...details.responseHeaders,
+        'Access-Control-Allow-Origin': ['*'],
       },
     })
   })
@@ -43,16 +58,6 @@ function createWindow() {
 
 app.whenReady().then(() => {
   createWindow()
-
-  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-    callback({
-      responseHeaders: {
-        ...details.responseHeaders,
-        'Content-Security-Policy': ['script-src \'self\''],
-      },
-    })
-  })
-
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow()
@@ -71,18 +76,15 @@ ipcMain.handle('login', (_event, _message) => {
     const win = new BrowserWindow({
       width: 1200,
       height: 800,
-      webPreferences: {
-        webSecurity: false,
-      },
       resizable: false,
     })
     win.loadURL('https://www.douyu.com/directory')
-    win.webContents.openDevTools({ mode: 'detach' })
     win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
       callback({
         responseHeaders: {
-          'Content-Security-Policy': ['script-src \'unsafe-inline\' \'script-src-elem\' \'self\' https://www.douyu.com'],
           ...details.responseHeaders,
+          'Content-Security-Policy': ['*'],
+          'Access-Control-Allow-Origin': ['*'],
         },
       })
     })

@@ -3,5 +3,5 @@
 </script>
 
 <template>
-  <router-view />
+  123456
 </template>
