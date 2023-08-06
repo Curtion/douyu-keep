@@ -9,6 +9,7 @@ import '@unocss/reset/tailwind.css'
 import 'virtual:uno.css'
 import './style.scss'
 import 'vuetify/styles'
+import '@mdi/font/css/materialdesignicons.css'
 
 const vuetify = createVuetify({
   components,

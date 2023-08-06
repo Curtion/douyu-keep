@@ -61,7 +61,10 @@ async function switchLogin() {
       <thead>
         <tr>
           <th class="text-left">
-            名称
+            序号
+          </th>
+          <th class="text-left">
+            主播名称
           </th>
           <th class="text-left">
             房间号
@@ -82,9 +85,10 @@ async function switchLogin() {
       </thead>
       <tbody>
         <tr
-          v-for="item in fansList"
+          v-for="(item, index) in fansList"
           :key="item.roomId"
         >
+          <td>{{ index + 1 }}</td>
           <td>{{ item.name }}</td>
           <td>{{ item.roomId }}</td>
           <td>{{ item.level }}</td>
