@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useFans, useLogin } from '~/stores'
 
+const dialog = ref(false)
+
+const router = useRouter()
 const login = useLogin()
 const fans = useFans()
 const { fansList, loading } = storeToRefs(fans)
@@ -15,6 +20,16 @@ function refresh() {
   login.getUser(true)
   fans.getFansList()
 }
+
+async function switchLogin() {
+  dialog.value = false
+  await window.electron.ipcRenderer.invoke('login')
+  login.getUser(true).then(() => {
+    fans.getFansList()
+  }).catch(() => {
+    router.push('/login')
+  })
+}
 </script>
 
 <template>
@@ -25,6 +40,9 @@ function refresh() {
       </v-btn>
       <v-btn variant="tonal" size="small">
         开始任务
+      </v-btn>
+      <v-btn variant="tonal" size="small" @click="dialog = true">
+        切换账号
       </v-btn>
     </div>
     <div flex flex-gap-1 items-center>
@@ -76,6 +94,27 @@ function refresh() {
         </tr>
       </tbody>
     </v-table>
+  </div>
+  <div class="text-center">
+    <v-dialog
+      v-model="dialog"
+      width="50%"
+    >
+      <v-card>
+        <v-card-text>
+          在新窗口中退出并登录新账号, 登录成功后关闭窗口即可
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn color="primary" @click="switchLogin">
+            确认
+          </v-btn>
+          <v-btn color="primary" @click="dialog = false">
+            取消
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
