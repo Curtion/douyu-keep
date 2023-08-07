@@ -1,23 +1,21 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { reactive, ref } from 'vue'
+import { reactive } from 'vue'
 import { useFans } from '~/stores'
 import type { SendGift } from '~/stores/fans'
 
 type sendConfig = Record<string, SendGift>
 
-const boot = ref(false) // 开机自启
-const close = ref(false) // 自动关闭
-const run = reactive({
-  type: '自动执行',
-  cron: '',
-  model: 1,
-})
-
 const fans = useFans()
 const { fansList } = storeToRefs(fans)
-const send = ref<sendConfig>({
-  ...fansList.value.reduce((prev, curr) => {
+
+const config = reactive({
+  boot: false, // 开机自启
+  close: false, // 自动关闭
+  type: '自动执行', // 执行模式
+  cron: '', // cron表达式, 执行模式为定时执行时有效
+  model: 1, // 荧光棒分配逻辑 1: 百分比 2: 指定数量
+  send: fansList.value.reduce((prev, curr) => {
     prev[curr.roomId] = {
       percentage: 0,
       number: 0,
@@ -37,7 +35,7 @@ const send = ref<sendConfig>({
           <label for="boot">开机自启</label>
           <v-checkbox
             id="boot"
-            v-model="boot"
+            v-model="config.boot"
             color="success"
             hide-details
             class="flex-initial"
@@ -49,7 +47,7 @@ const send = ref<sendConfig>({
           <label for="close">自动关闭</label>
           <v-checkbox
             id="close"
-            v-model="close"
+            v-model="config.close"
             color="success"
             hide-details
             class="flex-initial"
@@ -65,7 +63,7 @@ const send = ref<sendConfig>({
     <v-divider class="border-opacity-75 my-3" color="success" />
     <div flex items-center flex-gap-2 mb-3>
       <v-select
-        v-model:model-value="run.type"
+        v-model:model-value="config.type"
         label="执行模式"
         :items="['自动执行', '定时执行', '手动执行']"
         variant="outlined"
@@ -78,17 +76,17 @@ const send = ref<sendConfig>({
       </v-tooltip>
     </div>
     <v-text-field
-      v-if="run.type === '定时执行'"
-      v-model:model-value="run.cron"
+      v-if="config.type === '定时执行'"
+      v-model:model-value="config.cron"
       clearable
       label="请输入cron表达式"
     />
-    <span v-if="run.type === '定时执行'">
+    <span v-if="config.type === '定时执行'">
       在线生成表达式: http://cron.ciding.cc/
     </span>
     <v-divider class="border-opacity-75 my-3" color="success" />
     <v-radio-group
-      v-model="run.model"
+      v-model="config.model"
       label="荧光棒分配逻辑"
       inline
       hide-details
@@ -122,7 +120,7 @@ const send = ref<sendConfig>({
             亲密度
           </th>
           <th class="text-center">
-            数量({{ run.model === 1 ? '%' : '个' }})
+            数量({{ config.model === 1 ? '%' : '个' }})
           </th>
         </tr>
       </thead>
@@ -138,14 +136,14 @@ const send = ref<sendConfig>({
           <td>{{ item.intimacy }}</td>
           <td w-35>
             <v-text-field
-              v-if="run.model === 1"
-              v-model="send[item.roomId].percentage"
+              v-if="config.model === 1"
+              v-model="config.send[item.roomId].percentage"
               label="赠送数量"
               hide-details
             />
             <v-text-field
-              v-if="run.model === 2"
-              v-model="send[item.roomId].number"
+              v-if="config.model === 2"
+              v-model="config.send[item.roomId].number"
               label="赠送数量"
               hide-details
             />
