@@ -2,14 +2,12 @@
 import { storeToRefs } from 'pinia'
 import { reactive } from 'vue'
 import { useFans } from '~/stores'
-import type { SendGift } from '~/stores/fans'
-
-type sendConfig = Record<string, SendGift>
+import type { Config, sendConfig } from '~/stores/fans'
 
 const fans = useFans()
 const { fansList } = storeToRefs(fans)
 
-const config = reactive({
+const config = reactive<Config>({
   boot: false, // 开机自启
   close: false, // 自动关闭
   type: '自动执行', // 执行模式
@@ -25,6 +23,12 @@ const config = reactive({
     return prev
   }, {} as sendConfig),
 })
+
+async function init() {
+  const res = await window.electron.ipcRenderer.invoke('db', 'read')
+  console.log(res)
+}
+init()
 </script>
 
 <template>
@@ -94,7 +98,7 @@ const config = reactive({
     >
       <v-radio label="百分比" :value="1" />
       <v-radio label="指定数量" :value="2" />
-      <v-tooltip text="填写-1表示剩余总数">
+      <v-tooltip text="指定数量时填写-1表示剩余总数">
         <template #activator="{ props }">
           <div ml-3 v-bind="props" class="i-carbon-help" />
         </template>

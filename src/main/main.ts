@@ -1,6 +1,7 @@
 import { join } from 'node:path'
 import process from 'node:process'
-import { BrowserWindow, app, ipcMain, session } from 'electron'
+import { BrowserWindow, app, session } from 'electron'
+import ipc from './ipc'
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -59,6 +60,7 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  ipc()
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -71,35 +73,4 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
-})
-
-ipcMain.handle('login', (_event, _message) => {
-  return new Promise<void>((resolve) => {
-    const win = new BrowserWindow({
-      width: 1200,
-      height: 800,
-      resizable: false,
-      webPreferences: {
-        webSecurity: false,
-      },
-    })
-    win.loadURL('https://www.douyu.com/directory', {
-      userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 Edg/115.0.1901.188',
-    })
-    if (process.env.NODE_ENV === 'development') {
-      win.webContents.openDevTools({ mode: 'detach' })
-    }
-    win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-      callback({
-        responseHeaders: {
-          ...details.responseHeaders,
-          'Content-Security-Policy': ['*'],
-          'Access-Control-Allow-Origin': ['*'],
-        },
-      })
-    })
-    win.on('closed', () => {
-      resolve()
-    })
-  })
 })

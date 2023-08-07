@@ -20,6 +20,16 @@ export interface SendGift {
   percentage: number // 亲密度百分比
 }
 
+export interface Config {
+  boot: boolean
+  close: boolean
+  type: string
+  cron: string
+  model: number
+  send: sendConfig
+}
+export type sendConfig = Record<string, SendGift>
+
 export const useFans = defineStore('fans', () => {
   const fansList = ref<Fans[]>([])
   const loading = ref<boolean>(false)
