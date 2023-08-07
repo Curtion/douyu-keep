@@ -1,6 +1,5 @@
 import process from 'node:process'
 import { BrowserWindow, ipcMain } from 'electron'
-import type { Config } from '../renderer/stores/fans'
 import db from './db'
 
 export default function init() {
@@ -35,17 +34,19 @@ export default function init() {
     })
   })
 
-  ipcMain.handle('db', (_event, message) => {
-    return new Promise<Config>((resolve, reject) => {
-      if (message === 'data') {
-        resolve(db.data)
-      } else if (message === 'read') {
-        db.read().then(() => resolve(db.data)).catch(reject)
-      } else if (message === 'write') {
-        db.write().then(() => resolve(db.data)).catch(reject)
-      } else {
-        reject(new Error('未知的消息'))
-      }
-    })
-  })
+  db()
+
+  // ipcMain.handle('db', (_event, message) => {
+  //   return new Promise<Config>((resolve, reject) => {
+  //     if (message === 'data') {
+  //       resolve(db.data)
+  //     } else if (message === 'read') {
+  //       db.read().then(() => resolve(db.data)).catch(reject)
+  //     } else if (message === 'write') {
+  //       db.write().then(() => resolve(db.data)).catch(reject)
+  //     } else {
+  //       reject(new Error('未知的消息'))
+  //     }
+  //   })
+  // })
 }

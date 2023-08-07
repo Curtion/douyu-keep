@@ -1,5 +1,6 @@
 {
     "appId": "com.curtion.dykeep",
+    "productName": "斗鱼续牌工具",
     "directories": {
         "output": "dist"
     },
@@ -7,7 +8,7 @@
         "oneClick": false,
         "perMachine": false,
         "allowToChangeInstallationDirectory": true,
-        "shortcutName": "Electron App"
+        "shortcutName": "斗鱼续牌工具"
     },
     "win": {
         "target": "nsis"
