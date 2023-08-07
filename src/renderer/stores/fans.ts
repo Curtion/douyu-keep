@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import axios from 'axios'
 
+// https://www.douyu.com/japi/prop/backpack/web/v1?rid=roomId 背包查看接口
+
 export interface Fans {
   roomId: number // 房间号
   name: string // 主播名称

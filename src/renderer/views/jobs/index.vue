@@ -23,7 +23,11 @@ function refresh() {
 
 async function switchLogin() {
   dialog.value = false
-  await window.electron.ipcRenderer.invoke('login')
+  try {
+    await window.electron.ipcRenderer.invoke('login')
+  } catch (error) {
+    console.log(error)
+  }
   login.getUser(true).then(() => {
     fans.getFansList()
   }).catch(() => {
@@ -110,11 +114,11 @@ async function switchLogin() {
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn color="primary" @click="switchLogin">
-            确认
-          </v-btn>
           <v-btn color="primary" @click="dialog = false">
             取消
+          </v-btn>
+          <v-btn color="primary" @click="switchLogin">
+            确认
           </v-btn>
         </v-card-actions>
       </v-card>

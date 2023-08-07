@@ -2,8 +2,12 @@
 import { storeToRefs } from 'pinia'
 import { reactive, ref } from 'vue'
 import { useFans } from '~/stores'
+import type { SendGift } from '~/stores/fans'
 
-const boot = ref(false)
+type sendConfig = Record<string, SendGift>
+
+const boot = ref(false) // 开机自启
+const close = ref(false) // 自动关闭
 const run = reactive({
   type: '自动执行',
   cron: '',
@@ -12,6 +16,17 @@ const run = reactive({
 
 const fans = useFans()
 const { fansList } = storeToRefs(fans)
+const send = ref<sendConfig>({
+  ...fansList.value.reduce((prev, curr) => {
+    prev[curr.roomId] = {
+      percentage: 0,
+      number: 0,
+      giftId: 268,
+      roomId: curr.roomId,
+    }
+    return prev
+  }, {} as sendConfig),
+})
 </script>
 
 <template>
@@ -31,10 +46,10 @@ const { fansList } = storeToRefs(fans)
       </v-col>
       <v-col cols="6">
         <div flex items-center>
-          <label for="boot">自动关闭</label>
+          <label for="close">自动关闭</label>
           <v-checkbox
-            id="boot"
-            v-model="boot"
+            id="close"
+            v-model="close"
             color="success"
             hide-details
             class="flex-initial"
@@ -77,12 +92,18 @@ const { fansList } = storeToRefs(fans)
       label="荧光棒分配逻辑"
       inline
       hide-details
+      items-center
     >
       <v-radio label="百分比" :value="1" />
       <v-radio label="指定数量" :value="2" />
+      <v-tooltip text="填写-1表示剩余总数">
+        <template #activator="{ props }">
+          <div ml-3 v-bind="props" class="i-carbon-help" />
+        </template>
+      </v-tooltip>
     </v-radio-group>
     <v-divider class="border-opacity-75 my-3" color="success" />
-    <v-table>
+    <v-table density="compact">
       <thead>
         <tr>
           <th class="text-left">
@@ -100,6 +121,9 @@ const { fansList } = storeToRefs(fans)
           <th class="text-left">
             亲密度
           </th>
+          <th class="text-center">
+            数量({{ run.model === 1 ? '%' : '个' }})
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -112,17 +136,33 @@ const { fansList } = storeToRefs(fans)
           <td>{{ item.level }}</td>
           <td>{{ item.rank }}</td>
           <td>{{ item.intimacy }}</td>
+          <td w-35>
+            <v-text-field
+              v-if="run.model === 1"
+              v-model="send[item.roomId].percentage"
+              label="赠送数量"
+              hide-details
+            />
+            <v-text-field
+              v-if="run.model === 2"
+              v-model="send[item.roomId].number"
+              label="赠送数量"
+              hide-details
+            />
+          </td>
         </tr>
       </tbody>
     </v-table>
+    <v-divider class="border-opacity-75 my-3" color="success" />
+    <div flex flex-gap-2 justify-end>
+      <v-btn>
+        重置
+      </v-btn>
+      <v-btn color="blue">
+        保 存
+      </v-btn>
+    </div>
   </div>
-
-  <!-- <div>
-    1. 开机自启，自动赠送，自动关闭
-    2. 开机自启, 不赠送，不关闭，定时赠送
-    3. 百分比赠送; 数量赠送
-    4. 检查过期时间、检查双倍亲密度, 在有效时间内双倍亲密度赠送
-  </div> -->
 </template>
 
 <style scoped lang="scss">
