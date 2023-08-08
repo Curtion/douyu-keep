@@ -38,7 +38,7 @@ async function handleConfigReset() {
 
 async function handleConfigSave() {
   try {
-    await validateCron()
+    await validCron()
   } catch (error: any) {
     warn.show = true
     warn.color = 'blue-grey'
@@ -46,7 +46,7 @@ async function handleConfigSave() {
     return
   }
   try {
-    await validateNumber()
+    await validNumber()
   } catch (error: any) {
     warn.show = true
     warn.color = 'blue-grey'
@@ -54,7 +54,7 @@ async function handleConfigSave() {
     return
   }
   try {
-    await validatePercentage()
+    await validPercentage()
   } catch (error: any) {
     warn.show = true
     warn.color = 'blue-grey'
@@ -72,18 +72,17 @@ async function handleConfigSave() {
 }
 
 // 校验cron表达式
-async function validateCron() {
+async function validCron() {
   if (config.value.type === '定时执行') {
     if (config.value.cron === '') {
       return Promise.reject(new Error('cron表达式不能为空'))
     }
-    // TODO: 验证cron表达式
-    return Promise.resolve()
+    return await window.electron.ipcRenderer.invoke('cron', config.value.cron)
   }
 }
 
 // 校验荧光棒数量
-async function validateNumber() {
+async function validNumber() {
   if (config.value.model === 2) {
     const status = Object.values(config.value.send).find((item) => {
       return item.number < -1 || Number.isNaN(Number(item.number))
@@ -96,7 +95,7 @@ async function validateNumber() {
 }
 
 // 校验荧光棒百分比
-async function validatePercentage() {
+async function validPercentage() {
   if (config.value.model === 1) {
     const status = Object.values(config.value.send).find((item) => {
       return item.percentage < 0 || item.percentage > 100 || Number.isNaN(Number(item.percentage))
@@ -204,7 +203,7 @@ init()
       label="请输入cron表达式"
     />
     <span v-if="config.type === '定时执行'">
-      在线生成表达式: http://cron.ciding.cc/
+      在线生成表达式: https://cron.qqe2.com/
     </span>
     <v-divider class="border-opacity-75 my-3" color="success" />
     <v-radio-group

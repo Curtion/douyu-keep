@@ -1,5 +1,6 @@
 import process from 'node:process'
 import { BrowserWindow, ipcMain } from 'electron'
+import cronParse from 'cron-parser'
 import db from './db'
 
 export default function init() {
@@ -46,6 +47,17 @@ export default function init() {
         resolve(undefined)
       } else {
         reject(new Error('未知的消息'))
+      }
+    })
+  })
+
+  ipcMain.handle('cron', (_event, cron) => {
+    return new Promise<any>((resolve, reject) => {
+      try {
+        const interval = cronParse.parseExpression(cron)
+        resolve(interval.next().toDate().getTime())
+      } catch (error) {
+        reject(error)
       }
     })
   })
