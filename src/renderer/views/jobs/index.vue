@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useFans, useLogin } from '~/stores'
+import startJob from '~/run'
 
 const dialog = ref(false)
 
@@ -12,9 +13,25 @@ const fans = useFans()
 const { fansList, loading } = storeToRefs(fans)
 const { user } = storeToRefs(login)
 
-if (fansList.value.length === 0) {
-  fans.getFansList()
+const warn = reactive({
+  show: false,
+  timeout: 10000,
+  text: '',
+  color: 'blue-grey',
+})
+
+async function init(manual = false) {
+  if (fansList.value.length === 0) {
+    fans.getFansList()
+  }
+  try {
+    await startJob(manual)
+  } catch (error: any) {
+    warn.show = true
+    warn.text = error.toString()
+  }
 }
+init()
 
 function refresh() {
   login.getUser(true)
@@ -42,7 +59,7 @@ async function switchLogin() {
       <v-btn variant="tonal" size="small" @click="refresh">
         刷新
       </v-btn>
-      <v-btn variant="tonal" size="small">
+      <v-btn variant="tonal" size="small" @click="init(true)">
         开始任务
       </v-btn>
       <v-btn variant="tonal" size="small" @click="dialog = true">
@@ -124,6 +141,23 @@ async function switchLogin() {
       </v-card>
     </v-dialog>
   </div>
+  <v-snackbar
+    v-model="warn.show"
+    :timeout="warn.timeout"
+    :color="warn.color"
+    rounded="pill"
+  >
+    {{ warn.text }}
+    <template #actions>
+      <v-btn
+        color="blue"
+        variant="text"
+        @click="warn.show = false"
+      >
+        关闭
+      </v-btn>
+    </template>
+  </v-snackbar>
 </template>
 
 <style scoped lang="scss">

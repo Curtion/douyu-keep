@@ -8,11 +8,11 @@ const fans = useFans()
 const { fansList } = storeToRefs(fans)
 
 const defaultConfig: Config = {
-  boot: false, // 开机自启
-  close: false, // 自动关闭
-  type: '自动执行', // 执行模式
-  cron: '', // cron表达式, 执行模式为定时执行时有效
-  model: 1, // 荧光棒分配逻辑 1: 百分比 2: 指定数量
+  boot: false,
+  close: false,
+  type: '自动执行',
+  cron: '',
+  model: 1,
   send: fansList.value.reduce((prev, curr) => {
     prev[curr.roomId] = {
       percentage: 0,
@@ -146,6 +146,8 @@ async function init() {
   }
 }
 init()
+
+// TODO cron显示接下来10次执行时间
 </script>
 
 <template>
