@@ -90,6 +90,9 @@ async function validNumber() {
     if (status) {
       return Promise.reject(new Error(`荧光棒数量[${status.number}]填写不正确`))
     }
+    if (Object.values(config.value.send).filter(item => item.number === -1).length > 1) {
+      return Promise.reject(new Error('荧光棒数量只能有一个-1'))
+    }
   }
   return Promise.resolve()
 }
