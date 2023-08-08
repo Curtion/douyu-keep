@@ -34,19 +34,19 @@ export default function init() {
     })
   })
 
-  db()
-
-  // ipcMain.handle('db', (_event, message) => {
-  //   return new Promise<Config>((resolve, reject) => {
-  //     if (message === 'data') {
-  //       resolve(db.data)
-  //     } else if (message === 'read') {
-  //       db.read().then(() => resolve(db.data)).catch(reject)
-  //     } else if (message === 'write') {
-  //       db.write().then(() => resolve(db.data)).catch(reject)
-  //     } else {
-  //       reject(new Error('未知的消息'))
-  //     }
-  //   })
-  // })
+  ipcMain.handle('db', (_event, { type, key, value }) => {
+    return new Promise<any>((resolve, reject) => {
+      if (type === 'get') {
+        resolve(db.get(key))
+      } else if (type === 'set') {
+        db.set(key, value)
+        resolve(undefined)
+      } else if (type === 'delete') {
+        db.delete(key)
+        resolve(undefined)
+      } else {
+        reject(new Error('未知的消息'))
+      }
+    })
+  })
 }

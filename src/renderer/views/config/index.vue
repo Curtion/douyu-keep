@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { useFans } from '~/stores'
 import type { Config, sendConfig } from '~/stores/fans'
 
 const fans = useFans()
 const { fansList } = storeToRefs(fans)
 
-const config = reactive<Config>({
+const defaultConfig: Config = {
   boot: false, // 开机自启
   close: false, // 自动关闭
   type: '自动执行', // 执行模式
@@ -22,11 +22,129 @@ const config = reactive<Config>({
     }
     return prev
   }, {} as sendConfig),
+}
+const config = ref<Config>(defaultConfig)
+
+const warn = reactive({
+  show: false,
+  timeout: 3000,
+  text: '',
+  color: 'blue-grey',
 })
 
+async function handleConfigReset() {
+  init()
+}
+
+async function handleConfigSave() {
+  try {
+    await validateCron()
+  } catch (error: any) {
+    warn.show = true
+    warn.color = 'blue-grey'
+    warn.text = error.toString()
+    return
+  }
+  try {
+    await validateNumber()
+  } catch (error: any) {
+    warn.show = true
+    warn.color = 'blue-grey'
+    warn.text = error.toString()
+    return
+  }
+  try {
+    await validatePercentage()
+  } catch (error: any) {
+    warn.show = true
+    warn.color = 'blue-grey'
+    warn.text = error.toString()
+    return
+  }
+  await window.electron.ipcRenderer.invoke('db', {
+    type: 'set',
+    key: 'config',
+    value: JSON.stringify(config.value),
+  })
+  warn.show = true
+  warn.text = '保存成功'
+  warn.color = 'success'
+}
+
+// 校验cron表达式
+async function validateCron() {
+  if (config.value.type === '定时执行') {
+    if (config.value.cron === '') {
+      return Promise.reject(new Error('cron表达式不能为空'))
+    }
+    // TODO: 验证cron表达式
+    return Promise.resolve()
+  }
+}
+
+// 校验荧光棒数量
+async function validateNumber() {
+  if (config.value.model === 2) {
+    const status = Object.values(config.value.send).find((item) => {
+      return item.number < -1 || Number.isNaN(Number(item.number))
+    })
+    if (status) {
+      return Promise.reject(new Error(`荧光棒数量[${status.number}]填写不正确`))
+    }
+  }
+  return Promise.resolve()
+}
+
+// 校验荧光棒百分比
+async function validatePercentage() {
+  if (config.value.model === 1) {
+    const status = Object.values(config.value.send).find((item) => {
+      return item.percentage < 0 || item.percentage > 100 || Number.isNaN(Number(item.percentage))
+    })
+    if (status) {
+      return Promise.reject(new Error(`荧光棒百分比[${status.percentage}]填写不正确`))
+    }
+    if (Object.values(config.value.send).reduce((prev, curr) => {
+      return prev + curr.percentage
+    }, 0) !== 100) {
+      return Promise.reject(new Error('荧光棒百分比之和必须等于100'))
+    }
+  }
+  return Promise.resolve()
+}
+
 async function init() {
-  const res = await window.electron.ipcRenderer.invoke('db', 'read')
-  console.log(res)
+  const cfg = await window.electron.ipcRenderer.invoke('db', {
+    type: 'get',
+    key: 'config',
+  })
+  if (cfg === undefined) {
+    await window.electron.ipcRenderer.invoke('db', {
+      type: 'set',
+      key: 'config',
+      value: JSON.stringify(defaultConfig),
+    })
+  } else {
+    const jsonCfg: Config = JSON.parse(cfg)
+    const send: sendConfig = {}
+    // 合并配置
+    for (const item of fansList.value) {
+      if (item.roomId in jsonCfg.send) {
+        send[item.roomId] = jsonCfg.send[item.roomId]
+      } else {
+        send[item.roomId] = {
+          percentage: 0,
+          number: 0,
+          giftId: 268,
+          roomId: item.roomId,
+        }
+      }
+    }
+    config.value = {
+      ...jsonCfg,
+      send,
+    }
+  }
 }
 init()
 </script>
@@ -73,7 +191,7 @@ init()
         variant="outlined"
         hide-details
       />
-      <v-tooltip text="手动执行: 需要手动点击执行。自动执行:软件启动时自动执行。定时执行:满足定时条件执行">
+      <v-tooltip text="自动执行:软件启动时自动执行。定时执行:满足定时条件执行。手动执行: 需要手动点击执行。">
         <template #activator="{ props }">
           <div v-bind="props" class="i-carbon-help" />
         </template>
@@ -124,7 +242,7 @@ init()
             亲密度
           </th>
           <th class="text-center">
-            数量({{ config.model === 1 ? '%' : '个' }})
+            赠送数量({{ config.model === 1 ? '%' : '个' }})
           </th>
         </tr>
       </thead>
@@ -141,13 +259,13 @@ init()
           <td w-35>
             <v-text-field
               v-if="config.model === 1"
-              v-model="config.send[item.roomId].percentage"
+              v-model.number="config.send[item.roomId].percentage"
               label="赠送数量"
               hide-details
             />
             <v-text-field
               v-if="config.model === 2"
-              v-model="config.send[item.roomId].number"
+              v-model.number="config.send[item.roomId].number"
               label="赠送数量"
               hide-details
             />
@@ -157,13 +275,30 @@ init()
     </v-table>
     <v-divider class="border-opacity-75 my-3" color="success" />
     <div flex flex-gap-2 justify-end>
-      <v-btn>
+      <v-btn @click="handleConfigReset">
         重置
       </v-btn>
-      <v-btn color="blue">
+      <v-btn color="blue" @click="handleConfigSave">
         保 存
       </v-btn>
     </div>
+    <v-snackbar
+      v-model="warn.show"
+      :timeout="warn.timeout"
+      :color="warn.color"
+      rounded="pill"
+    >
+      {{ warn.text }}
+      <template #actions>
+        <v-btn
+          color="blue"
+          variant="text"
+          @click="warn.show = false"
+        >
+          关闭
+        </v-btn>
+      </template>
+    </v-snackbar>
   </div>
 </template>
 
