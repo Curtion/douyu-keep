@@ -11,25 +11,26 @@
 // 8. 再次执行任务.
 
 import axios from 'axios'
+import { storeToRefs } from 'pinia'
 import type { sendArgs } from '~/../shared'
 import type { Config, SendGift, sendConfig } from '~/stores/fans'
+import { useLog } from '~/stores'
 
-let runing = false
-
-// TODO 任务详细日志显示
+const log = useLog()
+const { text, runing } = storeToRefs(log)
 
 export default async function startJob(manual: boolean) {
-  if (runing) {
-    console.log('任务正在执行中')
+  if (runing.value) {
+    text.value = '任务正在执行中...'
     return
   }
   const { type } = await getConfig()
-  if (type === '手动执行' && manual) {
-    start()
+  if (manual) {
+    await start()
     return
   }
-  if (type === '自动执行' || manual) {
-    start()
+  if (type === '自动执行') {
+    await start()
     return
   }
   if (type === '定时执行') {
@@ -38,23 +39,36 @@ export default async function startJob(manual: boolean) {
 }
 
 async function start() {
-  console.log('开始执行任务')
-  runing = true
+  runing.value = true
+  text.value = '即将开始任务'
+  let index = 0
+  const timer = setInterval(() => {
+    index++
+    text.value = `正在领取荧光棒${index}秒...`
+  }, 1000)
   await window.electron.ipcRenderer.invoke('getGift')
-  console.log('领取荧光棒')
+  clearInterval(timer)
+  text.value = '领取荧光棒成功'
   const number = await getGiftNumber()
   if (number === 0) {
-    console.log('荧光棒数量为0, 结束任务')
+    text.value = '荧光棒数量为0, 结束任务'
+    setTimeout(() => {
+      runing.value = false
+    }, 2000)
     return
   }
-  console.log('荧光棒数量为:', number)
+  text.value = `荧光棒数量为${number}`
+  sleep(2000)
   const { send, model } = await getConfig()
   let Jobs: sendConfig = {}
   if (model === 1) {
     // 百分比赠送
     const cfgCountNumber = Object.values(send).reduce((a, b) => a + b.percentage, 0)
     if (cfgCountNumber > 100) {
-      console.log(`亲密度百分比配置错误,请重新配置. 当前${cfgCountNumber}%, 最大100%`)
+      text.value = `亲密度百分比配置错误,请重新配置. 当前${cfgCountNumber}%, 最大100%`
+      setTimeout(() => {
+        runing.value = false
+      }, 2000)
       return
     }
     const sendSort = Object.values(send).sort((a, b) => a.percentage - b.percentage)
@@ -78,7 +92,10 @@ async function start() {
     // 指定数量赠送
     const cfgCountNumber = Object.values(send).reduce((a, b) => a + (b.number === -1 ? 0 : b.number), 0)
     if (cfgCountNumber > number) {
-      console.log(`荧光棒数量不足,请重新配置. 当前${number}个, 需求${cfgCountNumber}个`)
+      text.value = `荧光棒数量不足,请重新配置. 当前${number}个, 需求${cfgCountNumber}个`
+      setTimeout(() => {
+        runing.value = false
+      }, 2000)
       return
     }
     for (const key in send) {
@@ -90,15 +107,33 @@ async function start() {
     }
     Jobs = send
   }
-  const args = await getDyAndSid()
+  text.value = '开始获取必要参数dy和sid'
+  let args: sendArgs = {}
+  try {
+    args = await getDyAndSid()
+  } catch (error) {
+    text.value = `结束任务:获取参数失败${error}`
+    setTimeout(() => {
+      runing.value = false
+    }, 2000)
+    return
+  }
   for (const item of Object.values(Jobs)) {
-    console.log(`赠送${item.roomId}房间${item.count}个荧光棒`)
-    const did = await getDid(item.roomId.toString())
-    args.did = did
-    await sendGift(args, item)
+    try {
+      text.value = `即将赠送${item.roomId}房间${item.count}个荧光棒`
+      const did = await getDid(item.roomId.toString())
+      args.did = did
+      await sendGift(args, item)
+      text.value = `赠送${item.roomId}房间${item.count}个荧光棒成功`
+    } catch (error) {
+      text.value = `${item.roomId}房间赠送失败${error}`
+    }
     await sleep(2000)
   }
-  runing = false
+  text.value = '任务执行完毕'
+  setTimeout(() => {
+    runing.value = false
+  }, 2000)
 }
 
 function sleep(time: number) {
@@ -118,7 +153,7 @@ async function sendGift(args: sendArgs, Job: SendGift) {
   data.append('did', args.did!)
   data.append('dy', args.dy!)
   const res = await axios.post('https://www.douyu.com/member/prop/send', data)
-  console.log('赠送结果:', res.data)
+  return JSON.stringify(res.data)
 }
 
 async function getDyAndSid() {
@@ -144,9 +179,11 @@ async function getGiftNumber() {
     const { data } = await axios.get('https://www.douyu.com/japi/prop/backpack/web/v1?rid=4120796')
     if (data.data?.list?.length > 0) {
       return data.data?.list.find((item: any) => item.id === 268)?.count
+    } else {
+      return 0
     }
   } catch (error) {
-    console.log('获取荧光棒数量失败', error)
+    text.value = `获取荧光棒数量失败${error}`
     return 0
   }
 }

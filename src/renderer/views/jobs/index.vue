@@ -2,10 +2,13 @@
 import { storeToRefs } from 'pinia'
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useFans, useLogin } from '~/stores'
+import { useFans, useLog, useLogin } from '~/stores'
 import startJob from '~/run'
 
 const dialog = ref(false)
+
+const log = useLog()
+const { title, text, runing } = storeToRefs(log)
 
 const router = useRouter()
 const login = useLogin()
@@ -26,6 +29,7 @@ async function init(manual = false) {
   }
   try {
     await startJob(manual)
+    refresh()
   } catch (error: any) {
     warn.show = true
     warn.text = error.toString()
@@ -51,6 +55,7 @@ async function switchLogin() {
     router.push('/login')
   })
 }
+// TODO 显示任务状态，根据荧光棒数量判断
 </script>
 
 <template>
@@ -78,6 +83,14 @@ async function switchLogin() {
     />
   </div>
   <div v-else class="scrollbar-container">
+    <v-alert
+      v-model="runing"
+      :title="title"
+      :text="text"
+      border="start"
+      border-color="deep-purple accent-4"
+      elevation="1"
+    />
     <v-table>
       <thead>
         <tr>
