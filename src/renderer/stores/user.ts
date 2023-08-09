@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getGiftNumber } from '~/run'
+import { getGiftNumber } from '~/run/utils'
 
 export interface User {
   isLogin: boolean

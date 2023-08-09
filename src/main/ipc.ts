@@ -88,7 +88,11 @@ export default function init() {
     return new Promise<any>((resolve, reject) => {
       try {
         const interval = cronParse.parseExpression(cron)
-        resolve(interval.next().toDate().getTime())
+        const data: Date[] = []
+        for (let i = 0; i < 3; i++) {
+          data.push(interval.next().toDate())
+        }
+        resolve(data)
       } catch (error) {
         reject(error)
       }

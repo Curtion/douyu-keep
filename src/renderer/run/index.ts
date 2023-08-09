@@ -1,6 +1,6 @@
-import axios from 'axios'
 import { storeToRefs } from 'pinia'
-import type { Config, SendGift, sendConfig } from '~/stores/fans'
+import { getConfig, getDid, getDyAndSid, getGiftNumber, sendGift, sleep } from './utils'
+import type { sendConfig } from '~/stores/fans'
 import { useLog } from '~/stores'
 
 const log = useLog()
@@ -46,7 +46,16 @@ async function start() {
   }
   clearInterval(timer)
   text.value = '领取荧光棒成功'
-  const number = await getGiftNumber()
+  let number = 0
+  try {
+    number = await getGiftNumber()
+  } catch (error) {
+    text.value = `获取荧光棒数量失败${error}`
+    setTimeout(() => {
+      runing.value = false
+    }, 10000)
+    return
+  }
   if (number === 0) {
     text.value = '荧光棒数量为0, 结束任务'
     setTimeout(() => {
@@ -131,68 +140,4 @@ async function start() {
   setTimeout(() => {
     runing.value = false
   }, 10000)
-}
-
-function sleep(time: number) {
-  return new Promise<void>((resolve) => {
-    setTimeout(() => {
-      resolve()
-    }, time)
-  })
-}
-
-async function sendGift(args: sendArgs, Job: SendGift) {
-  const data = new FormData()
-  data.append('rid', String(Job.roomId))
-  data.append('prop_id', String(Job.giftId))
-  data.append('num', String(Job.count))
-  data.append('sid', args.sid!)
-  data.append('did', args.did!)
-  data.append('dy', args.dy!)
-  const res = await axios.post('https://www.douyu.com/member/prop/send', data)
-  return JSON.stringify(res.data)
-}
-
-async function getDyAndSid() {
-  const data: sendArgs = await window.electron.ipcRenderer.invoke('getDyAndSid')
-  return data
-}
-
-async function getDid(roomid: string) {
-  return new Promise<string>((resolve, reject) => {
-    axios.get(`https://www.douyu.com/${roomid}`).then((res) => {
-      const did: string = res.data.match(/owner_uid =(.*?);/)[1].trim()
-      if (did !== undefined) {
-        resolve(did)
-      } else {
-        reject(new Error('获取did失败'))
-      }
-    })
-  })
-}
-
-export async function getGiftNumber() {
-  try {
-    const { data } = await axios.get('https://www.douyu.com/japi/prop/backpack/web/v1?rid=4120796')
-    if (data.data?.list?.length > 0) {
-      return data.data?.list.find((item: any) => item.id === 268)?.count
-    } else {
-      return 0
-    }
-  } catch (error) {
-    text.value = `获取荧光棒数量失败${error}`
-    return 0
-  }
-}
-
-async function getConfig() {
-  const cfg = await window.electron.ipcRenderer.invoke('db', {
-    type: 'get',
-    key: 'config',
-  })
-  try {
-    return JSON.parse(cfg) as Config
-  } catch (error) {
-    throw new Error('请先配置任务!')
-  }
 }

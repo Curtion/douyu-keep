@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { reactive, ref } from 'vue'
+import { reactive, ref, watch } from 'vue'
+import dayjs from 'dayjs'
 import { useFans } from '~/stores'
 import type { Config, sendConfig } from '~/stores/fans'
 
@@ -30,6 +31,15 @@ const warn = reactive({
   timeout: 3000,
   text: '',
   color: 'blue-grey',
+})
+
+const cronNext = ref<Date[]>([])
+watch(() => config.value.cron, async (val) => {
+  try {
+    cronNext.value = await window.electron.ipcRenderer.invoke('cron', val) as Date[]
+  } catch (error) {
+    cronNext.value = []
+  }
 })
 
 async function handleConfigReset() {
@@ -149,8 +159,6 @@ async function init() {
   }
 }
 init()
-
-// TODO cron显示接下来10次执行时间
 </script>
 
 <template>
@@ -206,7 +214,20 @@ init()
       v-model:model-value="config.cron"
       clearable
       label="请输入cron表达式"
+      hide-details
     />
+    <v-card
+      v-if="config.type === '定时执行' && config.cron"
+      subtitle="最近3次执行时间"
+      variant="tonal"
+      my-3
+    >
+      <template #text>
+        <div v-for="item in cronNext" :key="item.toString()">
+          {{ dayjs(item).format('YYYY-MM-DD HH:mm:ss') }}
+        </div>
+      </template>
+    </v-card>
     <span v-if="config.type === '定时执行'">
       在线生成表达式: https://cron.qqe2.com/
     </span>

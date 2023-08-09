@@ -41,6 +41,7 @@
     "axios": "^1.4.0",
     "cron": "^2.4.0",
     "cron-parser": "^4.8.1",
+    "dayjs": "^1.11.9",
     "electron-store": "^8.1.0",
     "nprogress": "^0.2.0",
     "pinia": "^2.1.6",

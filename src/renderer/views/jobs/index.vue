@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia'
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import startJob from '~/run'
 import { useFans, useLog, useLogin } from '~/stores'
 
 const dialog = ref(false)
@@ -29,7 +30,7 @@ async function init(manual = false) {
   }
   try {
     if (route.params?.from === '/') {
-      // await startJob(manual)
+      await startJob(manual)
       refresh()
     }
   } catch (error: any) {
@@ -57,7 +58,6 @@ async function switchLogin() {
     router.push('/login')
   })
 }
-// TODO 显示任务状态，根据荧光棒数量判断
 </script>
 
 <template>
@@ -73,10 +73,12 @@ async function switchLogin() {
         切换账号
       </v-btn>
     </div>
-    <div flex flex-gap-1 items-center>
-      <span c-blue>账号: {{ user.phone }}</span>
+    <div flex flex-gap-1 items-center flex-gap-2>
+      <span v-if="user.giftNumber === -1" opacity-60 c-red>-</span>
+      <span v-else-if="user.giftNumber !== 0" opacity-60>剩余荧光棒: <span c-blue>{{ user.giftNumber }}</span>个</span>
+      <span v-else-if="user.giftNumber === 0" opacity-60 c-green>任务完成</span>
+      <span c-amber>账号: {{ user.phone }}</span>
       <img :src="user.level" alt="用户等级" w-40px h-16px>
-      <span>{{ user.giftNumber }}</span>
     </div>
   </header>
   <div v-if="loading" h-full flex justify-center items-center>
