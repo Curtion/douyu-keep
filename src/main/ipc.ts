@@ -1,7 +1,7 @@
 import process from 'node:process'
 import { BrowserWindow, ipcMain, session } from 'electron'
 import cronParse from 'cron-parser'
-import type { sendArgs } from '../shared'
+
 import db from './db'
 
 export default function init() {

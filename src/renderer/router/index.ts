@@ -1,9 +1,10 @@
+import type { RouteRecordRaw } from 'vue-router'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import NProgress from 'nprogress'
 import Layout from '~/layout/index.vue'
 import { useLogin } from '~/stores'
 
-const routes = [
+const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: Layout,
@@ -12,6 +13,10 @@ const routes = [
       {
         path: 'jobs',
         component: () => import('~/views/jobs/index.vue'),
+        beforeEnter: async (to, from, next) => {
+          to.params.from = from.path
+          next()
+        },
       },
       {
         path: 'config',

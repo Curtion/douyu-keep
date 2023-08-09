@@ -1,22 +1,10 @@
-// 1. 进入首页时执行
-// 2. 检查执行模式
-//     2.1 如果是自动执行则进入3步骤
-//     2.2 如果是手动执行则跳过后续逻辑
-//     2.3 如果是定时执行则创建定时任务(单例)
-// 3. 领取荧光棒
-// 4. 获取荧光棒数量,如果为0则跳过后续逻辑
-// 5. 获取赠送荧光棒所需的参数
-// 6. 判断是百分比还是指定数量赠送,并计算出数量.如果是百分比则向下取整,但是最小为1, 最后一个人会收到剩余的所有荧光棒
-// 7. 开始赠送
-// 8. 再次执行任务.
-
 import axios from 'axios'
 import { storeToRefs } from 'pinia'
-import type { sendArgs } from '~/../shared'
 import type { Config, SendGift, sendConfig } from '~/stores/fans'
 import { useLog } from '~/stores'
 
 const log = useLog()
+
 const { text, runing } = storeToRefs(log)
 
 export default async function startJob(manual: boolean) {
@@ -46,7 +34,16 @@ async function start() {
     index++
     text.value = `正在领取荧光棒${index}秒...`
   }, 1000)
-  await window.electron.ipcRenderer.invoke('getGift')
+  try {
+    await window.electron.ipcRenderer.invoke('getGift')
+  } catch (error) {
+    clearInterval(timer)
+    text.value = `领取荧光棒失败${error}`
+    setTimeout(() => {
+      runing.value = false
+    }, 10000)
+    return
+  }
   clearInterval(timer)
   text.value = '领取荧光棒成功'
   const number = await getGiftNumber()
@@ -54,7 +51,7 @@ async function start() {
     text.value = '荧光棒数量为0, 结束任务'
     setTimeout(() => {
       runing.value = false
-    }, 2000)
+    }, 10000)
     return
   }
   text.value = `荧光棒数量为${number}`
@@ -68,7 +65,7 @@ async function start() {
       text.value = `亲密度百分比配置错误,请重新配置. 当前${cfgCountNumber}%, 最大100%`
       setTimeout(() => {
         runing.value = false
-      }, 2000)
+      }, 10000)
       return
     }
     const sendSort = Object.values(send).sort((a, b) => a.percentage - b.percentage)
@@ -95,7 +92,7 @@ async function start() {
       text.value = `荧光棒数量不足,请重新配置. 当前${number}个, 需求${cfgCountNumber}个`
       setTimeout(() => {
         runing.value = false
-      }, 2000)
+      }, 10000)
       return
     }
     for (const key in send) {
@@ -115,7 +112,7 @@ async function start() {
     text.value = `结束任务:获取参数失败${error}`
     setTimeout(() => {
       runing.value = false
-    }, 2000)
+    }, 10000)
     return
   }
   for (const item of Object.values(Jobs)) {
@@ -133,7 +130,7 @@ async function start() {
   text.value = '任务执行完毕'
   setTimeout(() => {
     runing.value = false
-  }, 2000)
+  }, 10000)
 }
 
 function sleep(time: number) {
@@ -174,7 +171,7 @@ async function getDid(roomid: string) {
   })
 }
 
-async function getGiftNumber() {
+export async function getGiftNumber() {
   try {
     const { data } = await axios.get('https://www.douyu.com/japi/prop/backpack/web/v1?rid=4120796')
     if (data.data?.list?.length > 0) {

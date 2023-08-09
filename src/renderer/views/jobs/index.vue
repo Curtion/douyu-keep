@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useFans, useLog, useLogin } from '~/stores'
-import startJob from '~/run'
 
 const dialog = ref(false)
 
@@ -11,6 +10,7 @@ const log = useLog()
 const { title, text, runing } = storeToRefs(log)
 
 const router = useRouter()
+const route = useRoute()
 const login = useLogin()
 const fans = useFans()
 const { fansList, loading } = storeToRefs(fans)
@@ -28,8 +28,10 @@ async function init(manual = false) {
     fans.getFansList()
   }
   try {
-    await startJob(manual)
-    refresh()
+    if (route.params?.from === '/') {
+      // await startJob(manual)
+      refresh()
+    }
   } catch (error: any) {
     warn.show = true
     warn.text = error.toString()
@@ -74,6 +76,7 @@ async function switchLogin() {
     <div flex flex-gap-1 items-center>
       <span c-blue>账号: {{ user.phone }}</span>
       <img :src="user.level" alt="用户等级" w-40px h-16px>
+      <span>{{ user.giftNumber }}</span>
     </div>
   </header>
   <div v-if="loading" h-full flex justify-center items-center>

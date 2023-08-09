@@ -10,5 +10,6 @@
     "allowJs": true,
     "noImplicitAny": false,
   },
-  "exclude": ["static"]
+  "exclude": ["static"],
+  "include": ["./**/*.ts", "./**/*.d.ts", "./**/*.tsx", "../shared.d.ts"]
 }

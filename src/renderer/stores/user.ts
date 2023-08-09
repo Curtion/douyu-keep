@@ -1,11 +1,13 @@
 import axios from 'axios'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { getGiftNumber } from '~/run'
 
 export interface User {
   isLogin: boolean
   phone: string
   level: string
+  giftNumber: number
 }
 
 export const useLogin = defineStore('user', () => {
@@ -13,27 +15,29 @@ export const useLogin = defineStore('user', () => {
     isLogin: false,
     phone: '',
     level: '',
+    giftNumber: -1,
   })
-  const getUser = (force = false) => {
-    return new Promise<User>((resolve, reject) => {
-      if (user.value.isLogin && !force) {
-        return resolve(user.value)
-      }
-      axios.get('https://www.douyu.com/member/cp/cp_rpc_ajax').then((res) => {
-        if (typeof res.data === 'object') {
-          user.value.isLogin = true
-          user.value.phone = res.data.info?.mobile_phone?.slice(-11)
-          user.value.level = res.data.exp_info?.current?.pic_url
-          resolve(user.value)
-        } else {
-          user.value.isLogin = false
-          reject(new Error('当前未登录!'))
-        }
-      }).catch((err) => {
+  const getUser = async (force = false) => {
+    if (user.value.isLogin && !force) {
+      return Promise.resolve(user.value)
+    }
+    try {
+      const number = await getGiftNumber()
+      const info = await axios.get('https://www.douyu.com/member/cp/cp_rpc_ajax')
+      if (typeof info.data === 'object') {
+        user.value.isLogin = true
+        user.value.phone = info.data.info?.mobile_phone?.slice(-11)
+        user.value.level = info.data.exp_info?.current?.pic_url
+        user.value.giftNumber = number
+        Promise.resolve(user.value)
+      } else {
         user.value.isLogin = false
-        reject(err)
-      })
-    })
+        Promise.reject(new Error('当前未登录!'))
+      }
+    } catch (error) {
+      user.value.isLogin = false
+      Promise.reject(error)
+    }
   }
   return {
     user,
