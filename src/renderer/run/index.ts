@@ -81,8 +81,13 @@ async function start() {
     for (let i = 0; i < sendSort.length; i++) {
       const item = sendSort[i]
       if (i === sendSort.length - 1) {
-        item.count = number - sendSort.reduce((a, b) => a + (b.count || 0), 0)
+        const count = number - sendSort.reduce((a, b) => a + (b.count || 0), 0)
+        item.count = count
       } else {
+        if (item.percentage === 0) {
+          item.count = 0
+          continue
+        }
         const count = Math.floor((item.percentage / 100) * number)
         item.count = count === 0 ? 1 : count
       }
@@ -93,8 +98,7 @@ async function start() {
         [b.roomId]: b,
       }
     }, {} as sendConfig)
-    console.log(newSend)
-    const cfgCountNumberNew = Object.values(newSend).reduce((a, b) => a + (b.number === -1 ? 1 : b.number), 0)
+    const cfgCountNumberNew = Object.values(newSend).reduce((a, b) => a + (b.number <= -1 ? 1 : b.number), 0)
     if (cfgCountNumberNew > number) {
       text.value = `荧光棒数量不足,请重新配置. 当前${number}个, 需求${cfgCountNumberNew}个`
       setTimeout(() => {
@@ -102,6 +106,7 @@ async function start() {
       }, 10000)
       return
     }
+
     Jobs = newSend
   } else if (model === 2) {
     // 指定数量赠送

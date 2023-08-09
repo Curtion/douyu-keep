@@ -138,9 +138,12 @@ export default function init(callback: () => void) {
   ipcMain.handle('timer', (_, { cron, stop = false }) => {
     return new Promise<void>((resolve, reject) => {
       try {
-        if (stop && job) {
-          job.stop()
-          job = undefined
+        if (stop) {
+          if (job) {
+            job.stop()
+            job = undefined
+            return resolve()
+          }
           return resolve()
         }
         if (job) {

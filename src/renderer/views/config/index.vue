@@ -81,7 +81,7 @@ async function handleConfigSave() {
   }
   if (config.value.type === '定时执行') {
     try {
-      await window.electron.ipcRenderer.invoke('timer', { cron: config.value.cron })
+      await window.electron.ipcRenderer.invoke('timer', { cron: config.value.cron, stop: false })
     } catch (error) {
       warn.show = true
       warn.text = `定时执行设置失败${error}`
