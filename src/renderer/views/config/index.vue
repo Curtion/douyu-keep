@@ -30,7 +30,7 @@ const warn = reactive({
   show: false,
   timeout: 3000,
   text: '',
-  color: 'blue-grey',
+  color: 'error',
 })
 
 const cronNext = ref<Date[]>([])
@@ -51,7 +51,7 @@ async function handleConfigSave() {
     await validCron()
   } catch (error: any) {
     warn.show = true
-    warn.color = 'blue-grey'
+    warn.color = 'error'
     warn.text = error.toString()
     return
   }
@@ -59,7 +59,7 @@ async function handleConfigSave() {
     await validNumber()
   } catch (error: any) {
     warn.show = true
-    warn.color = 'blue-grey'
+    warn.color = 'error'
     warn.text = error.toString()
     return
   }
@@ -67,9 +67,36 @@ async function handleConfigSave() {
     await validPercentage()
   } catch (error: any) {
     warn.show = true
-    warn.color = 'blue-grey'
+    warn.color = 'error'
     warn.text = error.toString()
     return
+  }
+  try {
+    await window.electron.ipcRenderer.invoke('boot', config.value.boot)
+  } catch (error) {
+    warn.show = true
+    warn.text = `开机自启设置失败${error}`
+    warn.color = 'error'
+    return
+  }
+  if (config.value.type === '定时执行') {
+    try {
+      await window.electron.ipcRenderer.invoke('timer', { cron: config.value.cron })
+    } catch (error) {
+      warn.show = true
+      warn.text = `定时执行设置失败${error}`
+      warn.color = 'error'
+      return
+    }
+  } else {
+    try {
+      await window.electron.ipcRenderer.invoke('timer', { cron: '', stop: true })
+    } catch (error) {
+      warn.show = true
+      warn.text = `定时执行设置失败${error}`
+      warn.color = 'error'
+      return
+    }
   }
   await window.electron.ipcRenderer.invoke('db', {
     type: 'set',
@@ -229,7 +256,8 @@ init()
       </template>
     </v-card>
     <span v-if="config.type === '定时执行'">
-      在线生成表达式: https://cron.qqe2.com/
+      <div>在线生成表达式: https://cron.qqe2.com</div>
+      <div opacity-60 text-sm>(你不应该使用?号表达式, 尝试修改?为*)</div>
     </span>
     <v-divider class="border-opacity-75 my-3" color="success" />
     <v-radio-group

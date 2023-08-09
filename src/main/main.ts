@@ -14,7 +14,9 @@ function createWindow() {
     resizable: false,
     icon: join(__dirname, '../', '../', 'icon.png'),
   })
-
+  ipc(() => {
+    mainWindow.webContents.send('startJob')
+  })
   if (process.env.NODE_ENV === 'development') {
     const rendererPort = process.argv[2]
     mainWindow.loadURL(`http://localhost:${rendererPort}`, {
@@ -60,7 +62,6 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  ipc()
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

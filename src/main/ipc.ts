@@ -1,10 +1,14 @@
 import process from 'node:process'
-import { BrowserWindow, ipcMain, session } from 'electron'
+import { BrowserWindow, app, ipcMain, session } from 'electron'
 import cronParse from 'cron-parser'
+import { CronJob } from 'cron'
+import AutoLaunch from 'auto-launch'
 
 import db from './db'
 
-export default function init() {
+let job: CronJob | undefined
+
+export default function init(callback: () => void) {
   ipcMain.handle('login', () => {
     return new Promise<void>((resolve) => {
       const win = new BrowserWindow({
@@ -114,6 +118,76 @@ export default function init() {
           }).catch((error) => {
             reject(error)
           })
+      } catch (error) {
+        reject(error)
+      }
+    })
+  })
+
+  ipcMain.handle('close', () => {
+    return new Promise<void>((resolve, reject) => {
+      try {
+        app.quit()
+        resolve()
+      } catch (error) {
+        reject(error)
+      }
+    })
+  })
+
+  ipcMain.handle('timer', (_, { cron, stop = false }) => {
+    return new Promise<void>((resolve, reject) => {
+      try {
+        if (stop && job) {
+          job.stop()
+          job = undefined
+          return resolve()
+        }
+        if (job) {
+          job.stop()
+          job = undefined
+        }
+        job = new CronJob(
+          cron,
+          callback,
+          null,
+          false,
+          'Asia/Shanghai',
+        )
+        job.start()
+        resolve()
+      } catch (error) {
+        reject(error)
+      }
+    })
+  })
+
+  ipcMain.handle('boot', (_, status) => {
+    return new Promise<void>((resolve, reject) => {
+      try {
+        const douyuAutoLauncher = new AutoLaunch({
+          name: 'douyu-keep',
+          path: process.execPath,
+        })
+        if (status) {
+          douyuAutoLauncher.isEnabled()
+            .then((isEnabled) => {
+              if (isEnabled) {
+                resolve()
+              } else {
+                douyuAutoLauncher.enable().then(resolve).catch(reject)
+              }
+            }).catch(reject)
+        } else {
+          douyuAutoLauncher.isEnabled()
+            .then((isEnabled) => {
+              if (isEnabled) {
+                douyuAutoLauncher.disable().then(resolve).catch(reject)
+              } else {
+                resolve()
+              }
+            }).catch(reject)
+        }
       } catch (error) {
         reject(error)
       }

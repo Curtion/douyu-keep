@@ -3,12 +3,16 @@ import { storeToRefs } from 'pinia'
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import startJob from '~/run'
-import { useFans, useLog, useLogin } from '~/stores'
+import { getConfig } from '~/run/utils'
+import { useCronStatus, useFans, useLog, useLogin } from '~/stores'
 
 const dialog = ref(false)
 
 const log = useLog()
 const { title, text, runing } = storeToRefs(log)
+
+const cronjob = useCronStatus()
+const { isCronRuning } = storeToRefs(cronjob)
 
 const router = useRouter()
 const route = useRoute()
@@ -29,9 +33,9 @@ async function init(manual = false) {
     fans.getFansList()
   }
   try {
-    if (route.params?.from === '/') {
+    if (route.params?.from === '/' || manual) {
       await startJob(manual)
-      refresh()
+      await refresh()
     }
   } catch (error: any) {
     warn.show = true
@@ -40,9 +44,29 @@ async function init(manual = false) {
 }
 init()
 
-function refresh() {
-  login.getUser(true)
-  fans.getFansList()
+async function startCron() {
+  if (isCronRuning.value) {
+    return
+  }
+  try {
+    const { cron, type } = await getConfig()
+    if (cron && type === '定时执行') {
+      window.node.handleStartJob(() => {
+        init(true)
+      })
+      await window.electron.ipcRenderer.invoke('timer', { cron })
+      isCronRuning.value = true
+    }
+  } catch (error: any) {
+    warn.show = true
+    warn.text = error.toString()
+  }
+}
+startCron()
+
+async function refresh() {
+  await login.getUser(true)
+  await fans.getFansList()
 }
 
 async function switchLogin() {
@@ -180,7 +204,7 @@ async function switchLogin() {
 
 <style scoped lang="scss">
 .scrollbar-container {
-  height: 100%;
+  height: calc(100vh - 32px);
   overflow-y: auto;
 }
 </style>

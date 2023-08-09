@@ -7,5 +7,8 @@ export default interface ElectronApi {
 declare global {
   interface Window {
     electron: ElectronApi,
+    node: {
+      handleStartJob: (callback: () => void) => void,
+    }
   }
 }

@@ -65,7 +65,7 @@ async function start() {
   }
   text.value = `荧光棒数量为${number}`
   sleep(2000)
-  const { send, model } = await getConfig()
+  const { send, model, close } = await getConfig()
   let Jobs: sendConfig = {}
   if (model === 1) {
     // 百分比赠送
@@ -93,10 +93,19 @@ async function start() {
         [b.roomId]: b,
       }
     }, {} as sendConfig)
+    console.log(newSend)
+    const cfgCountNumberNew = Object.values(newSend).reduce((a, b) => a + (b.number === -1 ? 1 : b.number), 0)
+    if (cfgCountNumberNew > number) {
+      text.value = `荧光棒数量不足,请重新配置. 当前${number}个, 需求${cfgCountNumberNew}个`
+      setTimeout(() => {
+        runing.value = false
+      }, 10000)
+      return
+    }
     Jobs = newSend
   } else if (model === 2) {
     // 指定数量赠送
-    const cfgCountNumber = Object.values(send).reduce((a, b) => a + (b.number === -1 ? 0 : b.number), 0)
+    const cfgCountNumber = Object.values(send).reduce((a, b) => a + (b.number === -1 ? 1 : b.number), 0)
     if (cfgCountNumber > number) {
       text.value = `荧光棒数量不足,请重新配置. 当前${number}个, 需求${cfgCountNumber}个`
       setTimeout(() => {
@@ -126,6 +135,9 @@ async function start() {
   }
   for (const item of Object.values(Jobs)) {
     try {
+      if (item.count === 0) {
+        continue
+      }
       text.value = `即将赠送${item.roomId}房间${item.count}个荧光棒`
       const did = await getDid(item.roomId.toString())
       args.did = did
@@ -137,7 +149,10 @@ async function start() {
     await sleep(2000)
   }
   text.value = '任务执行完毕'
-  setTimeout(() => {
+  setTimeout(async () => {
     runing.value = false
-  }, 10000)
+    if (close) {
+      window.electron.ipcRenderer.invoke('close')
+    }
+  }, 2000)
 }
