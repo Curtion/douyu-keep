@@ -29,7 +29,6 @@ function createWindow() {
   } else {
     mainWindow.loadFile(join(app.getAppPath(), 'renderer', 'index.html'))
   }
-  mainWindow.webContents.openDevTools({ mode: 'detach' })
   mainWindow.setMenuBarVisibility(false)
   mainWindow.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
     session.defaultSession.cookies.get({ url: 'https://www.douyu.com' })
