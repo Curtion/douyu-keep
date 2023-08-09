@@ -1,6 +1,6 @@
 import { join } from 'node:path'
 import process from 'node:process'
-import { BrowserWindow, app, session } from 'electron'
+import { BrowserWindow, Menu, Tray, app, session } from 'electron'
 import ipc from './ipc'
 
 function createWindow() {
@@ -62,10 +62,37 @@ function createWindow() {
       },
     })
   })
+  return mainWindow
 }
 
+let tray: Tray
 app.whenReady().then(() => {
-  createWindow()
+  const mainWindow = createWindow()
+  tray = new Tray(join(__dirname, './static/icon.png'))
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: '显示/隐藏',
+      click: () => {
+        mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show()
+        mainWindow.isVisible() ? mainWindow.setSkipTaskbar(false) : mainWindow.setSkipTaskbar(true)
+      },
+    },
+    {
+      label: '退出',
+      click: () => mainWindow.destroy(),
+    },
+  ])
+  tray.setToolTip('斗鱼续牌工具')
+  tray.setContextMenu(contextMenu)
+  tray.on('click', () => {
+    mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show()
+    mainWindow.isVisible() ? mainWindow.setSkipTaskbar(false) : mainWindow.setSkipTaskbar(true)
+  })
+  mainWindow.on('close', (event) => {
+    mainWindow.hide()
+    mainWindow.setSkipTaskbar(true)
+    event.preventDefault()
+  })
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow()
