@@ -49,6 +49,7 @@ router.beforeEach(async (to, from, next) => {
     await getUser()
     next()
   } catch (err) {
+    console.log(err)
     next('/login')
   }
 })

@@ -25,15 +25,6 @@ export default function init(callback: () => void) {
       if (process.env.NODE_ENV === 'development') {
         win.webContents.openDevTools({ mode: 'detach' })
       }
-      win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-        callback({
-          responseHeaders: {
-            ...details.responseHeaders,
-            'Content-Security-Policy': ['*'],
-            'Access-Control-Allow-Origin': ['*'],
-          },
-        })
-      })
       win.on('closed', () => {
         resolve()
       })
@@ -53,15 +44,6 @@ export default function init(callback: () => void) {
       })
       win.loadURL('https://www.douyu.com/4120796', {
         userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 Edg/115.0.1901.188',
-      })
-      win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-        callback({
-          responseHeaders: {
-            ...details.responseHeaders,
-            'Content-Security-Policy': ['*'],
-            'Access-Control-Allow-Origin': ['*'],
-          },
-        })
       })
       win.on('closed', () => {
         resolve()

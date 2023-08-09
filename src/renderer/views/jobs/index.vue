@@ -33,7 +33,8 @@ async function init(manual = false) {
     fans.getFansList()
   }
   try {
-    if (route.params?.from === '/' || manual) {
+    const { type } = await getConfig()
+    if ((route.params?.from === '/' && type === '自动执行') || manual) {
       await startJob(manual)
       await refresh()
     }

@@ -157,13 +157,7 @@ async function init() {
     type: 'get',
     key: 'config',
   })
-  if (cfg === undefined) {
-    await window.electron.ipcRenderer.invoke('db', {
-      type: 'set',
-      key: 'config',
-      value: JSON.stringify(defaultConfig),
-    })
-  } else {
+  if (cfg !== undefined) {
     const jsonCfg: Config = JSON.parse(cfg)
     const send: sendConfig = {}
     // 合并配置

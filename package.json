@@ -18,7 +18,7 @@
     "url": "https://github.com/Curtion"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^0.40.0",
+    "@antfu/eslint-config": "^0.40.2",
     "@iconify-json/bx": "^1.1.7",
     "@iconify-json/carbon": "^1.1.19",
     "@mdi/font": "^7.2.96",
@@ -31,12 +31,12 @@
     "electron": "^25.4.0",
     "electron-builder": "^24.6.3",
     "eslint": "^8.46.0",
-    "eslint-plugin-vue": "^9.16.1",
+    "eslint-plugin-vue": "^9.17.0",
     "sass": "^1.64.2",
     "taze": "^0.11.2",
     "typescript": "^5.1.6",
-    "unocss": "^0.54.1",
-    "vite": "^4.4.8"
+    "unocss": "^0.54.3",
+    "vite": "^4.4.9"
   },
   "dependencies": {
     "auto-launch": "^5.0.6",
@@ -49,6 +49,6 @@
     "pinia": "^2.1.6",
     "vue": "^3.3.4",
     "vue-router": "4.2.4",
-    "vuetify": "^3.3.11"
+    "vuetify": "^3.3.12"
   }
 }

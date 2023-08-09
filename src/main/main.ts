@@ -4,16 +4,19 @@ import { BrowserWindow, app, session } from 'electron'
 import ipc from './ipc'
 
 function createWindow() {
+  const newSession = session.fromPartition('persist:main')
   const mainWindow = new BrowserWindow({
     width: 1000,
     height: 500,
     webPreferences: {
       preload: join(__dirname, 'preload.js'),
       contextIsolation: true,
+      session: newSession,
     },
     resizable: false,
     icon: join(__dirname, '../', '../', 'icon.png'),
   })
+  // dialog.showMessageBox({ message: app.getPath('userData').toString() })
   ipc(() => {
     mainWindow.webContents.send('startJob')
   })
@@ -26,6 +29,7 @@ function createWindow() {
   } else {
     mainWindow.loadFile(join(app.getAppPath(), 'renderer', 'index.html'))
   }
+  mainWindow.webContents.openDevTools({ mode: 'detach' })
   mainWindow.setMenuBarVisibility(false)
   mainWindow.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
     session.defaultSession.cookies.get({ url: 'https://www.douyu.com' })

@@ -29,14 +29,14 @@ export const useLogin = defineStore('user', () => {
         user.value.phone = info.data.info?.mobile_phone?.slice(-11)
         user.value.level = info.data.exp_info?.current?.pic_url
         user.value.giftNumber = number
-        Promise.resolve(user.value)
+        return Promise.resolve(user.value)
       } else {
         user.value.isLogin = false
-        Promise.reject(new Error('当前未登录!'))
+        return Promise.reject(new Error('当前未登录!'))
       }
     } catch (error) {
       user.value.isLogin = false
-      Promise.reject(error)
+      return Promise.reject(error)
     }
   }
   return {
