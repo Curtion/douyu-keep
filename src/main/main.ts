@@ -1,6 +1,6 @@
 import { join } from 'node:path'
 import process from 'node:process'
-import { BrowserWindow, Menu, Tray, app, session } from 'electron'
+import { BrowserWindow, Menu, Tray, app, nativeImage, session } from 'electron'
 import ipc from './ipc'
 
 function createWindow() {
@@ -13,6 +13,7 @@ function createWindow() {
       contextIsolation: true,
       session: newSession,
     },
+    show: false,
     resizable: false,
     icon: join(__dirname, '../', '../', 'icon.png'),
   })
@@ -65,10 +66,13 @@ function createWindow() {
   return mainWindow
 }
 
-let tray: Tray
 app.whenReady().then(() => {
   const mainWindow = createWindow()
-  tray = new Tray(join(__dirname, './static/icon.png'))
+  const img = nativeImage.createFromPath(join(__dirname, './static/icon.png'))
+  if (process.platform === 'darwin') {
+    img.setTemplateImage(true)
+  }
+  const tray = new Tray(img)
   const contextMenu = Menu.buildFromTemplate([
     {
       label: '显示/隐藏',
@@ -85,23 +89,14 @@ app.whenReady().then(() => {
   tray.setToolTip('斗鱼续牌工具')
   tray.setContextMenu(contextMenu)
   tray.on('click', () => {
-    mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show()
-    mainWindow.isVisible() ? mainWindow.setSkipTaskbar(false) : mainWindow.setSkipTaskbar(true)
+    if (!mainWindow.isVisible()) {
+      mainWindow.show()
+      mainWindow.setSkipTaskbar(true)
+    }
   })
   mainWindow.on('close', (event) => {
     mainWindow.hide()
     mainWindow.setSkipTaskbar(true)
     event.preventDefault()
   })
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow()
-    }
-  })
-})
-
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
 })
