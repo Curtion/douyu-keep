@@ -1,5 +1,7 @@
 # 说明
 
+[点击这里进行下载](https://github.com/Curtion/douyu-keep/releases)
+
 ![img](./doc/home.png)
 ![img](./doc/config.png)
 
