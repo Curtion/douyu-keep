@@ -1,5 +1,5 @@
 import { storeToRefs } from 'pinia'
-import { getConfig, getDid, getDyAndSid, getGiftNumber, sendGift, sleep } from './utils'
+import { computeGiftCountOfNumber, computeGiftCountOfPercentage, getConfig, getDid, getDyAndSid, getGiftNumber, sendGift, sleep } from './utils'
 import type { sendConfig } from '~/stores/fans'
 import { useLog } from '~/stores'
 
@@ -13,16 +13,8 @@ export default async function startJob(manual: boolean) {
     return
   }
   const { type } = await getConfig()
-  if (manual) {
+  if (type === '自动执行' || manual) {
     await start()
-    return
-  }
-  if (type === '自动执行') {
-    await start()
-    return
-  }
-  if (type === '定时执行') {
-    // TODO: 创建定时任务
   }
 }
 
@@ -69,63 +61,28 @@ async function start() {
   let Jobs: sendConfig = {}
   if (model === 1) {
     // 百分比赠送
-    const cfgCountNumber = Object.values(send).reduce((a, b) => a + b.percentage, 0)
-    if (cfgCountNumber > 100) {
-      text.value = `亲密度百分比配置错误,请重新配置. 当前${cfgCountNumber}%, 最大100%`
+    try {
+      const sendNumber = await computeGiftCountOfPercentage(number, send)
+      Jobs = sendNumber
+    } catch (error: any) {
+      text.value = error.toString()
       setTimeout(() => {
         runing.value = false
       }, 10000)
       return
     }
-    const sendSort = Object.values(send).sort((a, b) => a.percentage - b.percentage)
-    for (let i = 0; i < sendSort.length; i++) {
-      const item = sendSort[i]
-      if (i === sendSort.length - 1) {
-        const count = number - sendSort.reduce((a, b) => a + (b.count || 0), 0)
-        item.count = count
-      } else {
-        if (item.percentage === 0) {
-          item.count = 0
-          continue
-        }
-        const count = Math.floor((item.percentage / 100) * number)
-        item.count = count === 0 ? 1 : count
-      }
-    }
-    const newSend = sendSort.reduce((a, b) => {
-      return {
-        ...a,
-        [b.roomId]: b,
-      }
-    }, {} as sendConfig)
-    const cfgCountNumberNew = Object.values(newSend).reduce((a, b) => a + (b.number <= -1 ? 1 : b.number), 0)
-    if (cfgCountNumberNew > number) {
-      text.value = `荧光棒数量不足,请重新配置. 当前${number}个, 需求${cfgCountNumberNew}个`
-      setTimeout(() => {
-        runing.value = false
-      }, 10000)
-      return
-    }
-
-    Jobs = newSend
   } else if (model === 2) {
     // 指定数量赠送
-    const cfgCountNumber = Object.values(send).reduce((a, b) => a + (b.number === -1 ? 1 : b.number), 0)
-    if (cfgCountNumber > number) {
-      text.value = `荧光棒数量不足,请重新配置. 当前${number}个, 需求${cfgCountNumber}个`
+    try {
+      const sendNumber = await computeGiftCountOfNumber(number, send)
+      Jobs = sendNumber
+    } catch (error: any) {
+      text.value = error.toString()
       setTimeout(() => {
         runing.value = false
       }, 10000)
       return
     }
-    for (const key in send) {
-      if (send[key].number === -1) {
-        send[key].count = number - cfgCountNumber
-      } else {
-        send[key].count = send[key].number
-      }
-    }
-    Jobs = send
   }
   text.value = '开始获取必要参数dy和sid'
   let args: sendArgs = {}
