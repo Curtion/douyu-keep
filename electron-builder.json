@@ -1,6 +1,6 @@
 {
     "appId": "com.curtion.dykeep",
-    "productName": "斗鱼续牌工具",
+    "productName": "douyu-keep",
     "directories": {
         "output": "dist"
     },
@@ -8,7 +8,7 @@
         "oneClick": false,
         "perMachine": false,
         "allowToChangeInstallationDirectory": true,
-        "shortcutName": "斗鱼续牌工具"
+        "shortcutName": "douyu-keep"
     },
     "win": {
         "target": "nsis"
