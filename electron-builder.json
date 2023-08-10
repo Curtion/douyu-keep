@@ -1,6 +1,7 @@
 {
     "appId": "com.curtion.dykeep",
     "productName": "douyu-keep",
+    "artifactName": "${productName}-${version}-${os}_${arch}.${ext}",
     "directories": {
         "output": "dist"
     },
