@@ -109,7 +109,7 @@ export default function init(callback: () => void) {
   ipcMain.handle('close', () => {
     return new Promise<void>((resolve, reject) => {
       try {
-        app.quit()
+        app.exit()
         resolve()
       } catch (error) {
         reject(error)
