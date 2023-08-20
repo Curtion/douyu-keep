@@ -15,7 +15,8 @@
   "repository": "https://github.com/Curtion/douyu-keep.git",
   "author": {
     "name": "Curtion",
-    "url": "https://github.com/Curtion"
+    "url": "https://github.com/Curtion",
+    "email": "curtion@126.com"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.40.2",
