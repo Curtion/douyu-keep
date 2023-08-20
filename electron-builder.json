@@ -15,7 +15,7 @@
         "target": "nsis"
     },
     "linux":  {
-        "target": ["snap"]
+        "target": ["rpm", "AppImage"]
     },
     "files": [
         "build/main/**/*",
