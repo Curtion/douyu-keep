@@ -1,6 +1,6 @@
 {
   "name": "douyu-keep",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "斗鱼粉丝牌续牌",
   "main": "build/main/main.js",
   "license": "MIT",

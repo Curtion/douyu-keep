@@ -8,6 +8,7 @@ const loginError = reactive({
   isShow: false,
   text: '',
 })
+const loading = ref(false)
 
 const { getUser } = useLogin()
 const router = useRouter()
@@ -26,14 +27,35 @@ async function login() {
     }, 3000)
   }
 }
+
+async function checkLogin() {
+  loading.value = true
+  try {
+    await window.electron.ipcRenderer.invoke('getGift')
+    await getUser()
+    router.push('/')
+  } catch (error: any) {
+    loginError.text = error?.toString()
+    loginError.isShow = true
+    setTimeout(() => {
+      loginError.isShow = false
+    }, 3000)
+  } finally {
+    loading.value = false
+  }
+}
+checkLogin()
 </script>
 
 <template>
   <v-alert v-model="loginError.isShow" closable :text="loginError.text" type="warning" />
   <div class="flex items-center justify-center w-full h-full text-xl ">
-    <button class="text-black hover:underline" @click="dialog = true">
+    <button v-if="!loading" class="text-black hover:underline" @click="dialog = true">
       登录斗鱼账号
     </button>
+    <div class="text-black">
+      请稍等, 重新登录中...
+    </div>
   </div>
   <div class="text-center">
     <v-dialog v-model="dialog" width="50%">
