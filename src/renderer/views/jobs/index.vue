@@ -34,7 +34,7 @@ async function init(manual = false) {
   }
   try {
     const { type } = await getConfig()
-    if ((route.params?.from === '/' && type === '自动执行') || manual) {
+    if (((route.params?.from === '/' || route.params?.from === '/login') && type === '自动执行') || manual) {
       await startJob(manual)
       await refresh()
     }
