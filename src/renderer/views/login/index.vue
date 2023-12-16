@@ -53,8 +53,8 @@ checkLogin()
     <button v-if="!loading" class="text-black hover:underline" @click="dialog = true">
       登录斗鱼账号
     </button>
-    <div class="text-black text-sm">
-      请稍等, 重新登录中...
+    <div v-else class="text-black text-sm">
+      请稍等, 校验登录状态中...
     </div>
   </div>
   <div class="text-center">
