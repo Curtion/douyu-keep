@@ -11,23 +11,40 @@
         "allowToChangeInstallationDirectory": true,
         "shortcutName": "斗鱼续牌工具"
     },
+    "mac": {
+        "target": {
+            "target": "default",
+            "arch": [
+                "x64",
+                "arm64"
+            ]
+        }
+    },
     "win": {
         "target": "nsis"
     },
-    "linux":  {
-        "target": ["rpm", "AppImage", "deb"]
+    "linux": {
+        "target": [
+            "rpm",
+            "AppImage",
+            "deb"
+        ]
     },
     "files": [
         "build/main/**/*",
         {
             "from": "build/renderer",
             "to": "renderer",
-            "filter": ["**/*"]
+            "filter": [
+                "**/*"
+            ]
         },
         {
             "from": "src/main/static",
             "to": "static",
-            "filter": ["**/*"]
+            "filter": [
+                "**/*"
+            ]
         },
         "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
         "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
