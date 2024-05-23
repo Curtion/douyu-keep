@@ -95,6 +95,7 @@ async function start() {
     }, 10000)
     return
   }
+  let faildNumber = 0
   for (const item of Object.values(Jobs)) {
     try {
       if (item.count === 0) {
@@ -103,14 +104,21 @@ async function start() {
       text.value = `即将赠送${item.roomId}房间${item.count}个荧光棒`
       const did = await getDid(item.roomId.toString())
       args.did = did
+      item.count = item?.count ?? 0 + faildNumber
       await sendGift(args, item)
+      faildNumber = 0
       text.value = `赠送${item.roomId}房间${item.count}个荧光棒成功`
     } catch (error) {
-      text.value = `${item.roomId}房间赠送失败${error}`
+      faildNumber += item?.count ?? 0
+      text.value = `${item.roomId}房间赠送失败${error}, ${item.count}个荧光棒自动移交给下一个房间`
     }
     await sleep(2000)
   }
-  text.value = '任务执行完毕'
+  if (faildNumber > 0) {
+    text.value = `任务执行完毕, 有${faildNumber}个荧光棒未赠送成功`
+  } else {
+    text.value = '任务执行完毕'
+  }
   setTimeout(async () => {
     runing.value = false
     if (close) {
