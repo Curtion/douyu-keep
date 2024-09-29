@@ -22,9 +22,11 @@ export interface SendGift {
 export interface Config {
   boot: boolean // 开机自启
   close: boolean // 自动关闭
-  type: string // 执行模式 '自动执行', '定时执行', '手动执行'
+  type: '自动执行' | '定时执行' | '手动执行' // 执行模式 '自动执行', '定时执行', '手动执行'
+  time: '跟随执行模式' | '自定义' // 执行时机 '跟随执行模式', '自定义'
+  timeValue: (1 | 2 | 3 | 4 | 5 | 6 | 0)[] // 执行时机(星期)
   cron: string // cron表达式, 执行模式为定时执行时有效
-  model: number // 荧光棒分配逻辑 1: 百分比 2: 指定数量
+  model: 1 | 2 // 荧光棒分配逻辑 1: 百分比 2: 指定数量
   send: sendConfig
 }
 export type sendConfig = Record<string, SendGift>
