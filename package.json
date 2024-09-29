@@ -1,9 +1,15 @@
 {
   "name": "douyu-keep",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "斗鱼粉丝牌续牌",
-  "main": "build/main/main.js",
+  "author": {
+    "name": "Curtion",
+    "url": "https://github.com/Curtion",
+    "email": "curtion@126.com"
+  },
   "license": "MIT",
+  "repository": "https://github.com/Curtion/douyu-keep.git",
+  "main": "build/main/main.js",
   "scripts": {
     "dev": "node scripts/dev-server.js",
     "build": "node scripts/build.js && electron-builder",
@@ -12,11 +18,18 @@
     "build:linux": "node scripts/build.js && electron-builder --linux",
     "up": "taze major -I"
   },
-  "repository": "https://github.com/Curtion/douyu-keep.git",
-  "author": {
-    "name": "Curtion",
-    "url": "https://github.com/Curtion",
-    "email": "curtion@126.com"
+  "dependencies": {
+    "auto-launch": "^5.0.6",
+    "axios": "^1.4.0",
+    "cron": "^2.4.0",
+    "cron-parser": "^4.8.1",
+    "dayjs": "^1.11.9",
+    "electron-store": "^8.1.0",
+    "nprogress": "^0.2.0",
+    "pinia": "^2.1.6",
+    "vue": "^3.3.4",
+    "vue-router": "4.2.4",
+    "vuetify": "^3.3.12"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.40.2",
@@ -38,18 +51,5 @@
     "typescript": "^5.1.6",
     "unocss": "^0.54.3",
     "vite": "^4.4.9"
-  },
-  "dependencies": {
-    "auto-launch": "^5.0.6",
-    "axios": "^1.4.0",
-    "cron": "^2.4.0",
-    "cron-parser": "^4.8.1",
-    "dayjs": "^1.11.9",
-    "electron-store": "^8.1.0",
-    "nprogress": "^0.2.0",
-    "pinia": "^2.1.6",
-    "vue": "^3.3.4",
-    "vue-router": "4.2.4",
-    "vuetify": "^3.3.12"
   }
 }

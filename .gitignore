@@ -4,5 +4,6 @@ build
 
 .vscode
 .idea
+.yarn
 
 .DS_Store

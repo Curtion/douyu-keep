@@ -1,4 +1,5 @@
 import { storeToRefs } from 'pinia'
+import dayjs from 'dayjs'
 import { computeGiftCountOfNumber, computeGiftCountOfPercentage, getConfig, getDid, getDyAndSid, getGiftNumber, sendGift, sleep } from './utils'
 import type { sendConfig } from '~/stores/fans'
 import { useLog } from '~/stores'
@@ -38,6 +39,15 @@ async function start() {
   }
   clearInterval(timer)
   text.value = '领取荧光棒成功'
+  const { time, timeValue } = await getConfig()
+  const dayOfWeek = dayjs().day() as 0 | 1 | 2 | 3 | 4 | 5 | 6
+  if (time === '自定义' && !timeValue.includes(dayOfWeek)) {
+    text.value = '领取荧光棒成功, 但未满足赠送时机'
+    setTimeout(() => {
+      runing.value = false
+    }, 10000)
+    return
+  }
   let number = 0
   try {
     number = await getGiftNumber()

@@ -12,6 +12,8 @@ const defaultConfig: Config = {
   boot: false,
   close: false,
   type: '自动执行',
+  time: '跟随执行模式',
+  timeValue: [],
   cron: '',
   model: 1,
   send: fansList.value.reduce((prev, curr) => {
@@ -253,6 +255,47 @@ init()
       <div>在线生成表达式: https://cron.qqe2.com</div>
       <div opacity-60 text-sm>(你不应该使用?号表达式, 尝试修改?为*)</div>
     </span>
+    <v-divider class="border-opacity-75 my-3" color="success" />
+    <div flex items-center flex-gap-2 mb-3>
+      <v-select
+        v-model:model-value="config.time"
+        label="赠送时机"
+        :items="['跟随执行模式', '自定义']"
+        variant="outlined"
+        hide-details
+      />
+      <v-tooltip text="跟随执行模式:每次执行任务时会进行赠送。自定义:任务执行时仅领取不赠送,会在满足自定义条件下再进行赠送。">
+        <template #activator="{ props }">
+          <div v-bind="props" class="i-carbon-help" />
+        </template>
+      </v-tooltip>
+    </div>
+    <div
+      v-if="config.time === '自定义'"
+      flex items-center flex-gap-2 mb-3
+    >
+      <v-select
+        v-model:model-value="config.timeValue"
+        label="自定义赠送时机"
+        :items="[
+          { title: '星期一', value: 1 },
+          { title: '星期二', value: 2 },
+          { title: '星期三', value: 3 },
+          { title: '星期四', value: 4 },
+          { title: '星期五', value: 5 },
+          { title: '星期六', value: 6 },
+          { title: '星期日', value: 0 },
+        ]"
+        multiple
+        variant="outlined"
+        hide-details
+      />
+      <v-tooltip text="选择星期">
+        <template #activator="{ props }">
+          <div v-bind="props" class="i-carbon-help" />
+        </template>
+      </v-tooltip>
+    </div>
     <v-divider class="border-opacity-75 my-3" color="success" />
     <v-radio-group
       v-model="config.model"
