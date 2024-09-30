@@ -12,7 +12,6 @@ async function init() {
       value: JSON.stringify(config),
     })
   }
-
   if (!config.timeValue) {
     config.timeValue = []
     await window.electron.ipcRenderer.invoke('db', {

@@ -48,6 +48,18 @@ export async function getDid(roomid: string) {
   })
 }
 
+export async function getConfigByUser(user: string) {
+  const cfg = await window.electron.ipcRenderer.invoke('db', {
+    type: 'get',
+    key: user,
+  })
+  try {
+    return JSON.parse(cfg) as Config
+  } catch (error) {
+    throw new Error('当前用户配置不存在!')
+  }
+}
+
 export async function getConfig() {
   const cfg = await window.electron.ipcRenderer.invoke('db', {
     type: 'get',
